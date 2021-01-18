@@ -1,0 +1,45 @@
+$base_color2: #3F3D56;
+
+.checkout{
+    padding: 100px 30px;
+    max-width: 1024px;
+    margin: 0 auto;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 50px;
+
+    .paymentInfo{
+        .paymentBtn{
+            text-align: right;
+        }
+        .btn{
+            width: 100%;
+            background-color: $base_color2;
+            color: white;
+        }
+    }
+
+
+    .selectedItem{
+        
+        .itemInfo {
+            display: grid;
+            grid-template-columns: 1fr 3fr 1fr;
+            text-align: left;
+
+            .all_item{
+                text-align: center;
+                padding: 13px 0;
+            }
+            .item_price{
+                text-align: right;
+                padding: 13px 0;
+            }
+        }
+        .subTotal, .shipping, .total {
+            display: flex;
+            justify-content: space-between;
+        }
+
+    }
+}

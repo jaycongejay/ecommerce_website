@@ -1,0 +1,161 @@
+$base_color1: #fef8f5;
+$base_color2: #3F3D56;
+$base_color3: #FA255E;
+
+p{
+    margin: 0;
+    padding: 0;
+}
+.navbar{
+    background-color: $base_color1;
+    padding: 10px;
+    position: fixed;
+    width: 100%;
+    box-shadow: 0px 2px 15px rgba(0, 0, 0, 0.1);
+    font-size: 12px;
+    z-index: 1001;
+
+    a{
+        text-decoration: none;
+        color: $base_color2;
+        position: relative;
+        padding-right: 20px;
+    }
+    .side_menu{
+        position: absolute;
+        top: 62px;
+        padding: 10px;
+        width: 255px;
+        background-color: $base_color2;
+        border-radius: 8px;
+        z-index: 200;
+
+        p{
+            padding: 10px 0;
+        }
+        
+        .menu{
+            text-decoration: none;
+            color: $base_color1;
+        }
+        .menu:hover{
+            cursor: pointer;
+            color: $base_color3;
+        }
+    }
+    .account_menu{
+        position: absolute;
+        top: 62px;
+        right: 33px;
+        padding: 15px;
+        background-color: $base_color2;
+        border-radius: 8px;
+        z-index: 200;
+
+        .menu{
+            text-decoration: none;
+            color: $base_color1;
+        }
+        .menu:hover{
+            cursor: pointer;
+            color: $base_color3;
+        }
+        .user{
+            color: $base_color1;
+        }
+        p{
+            padding-bottom: 10px;
+        }
+        a{
+            padding: 0;
+            padding-top: 10px;
+        }
+    }
+
+    .navbar-brand{
+        color: $base_color2;
+        font-weight: bold;
+        margin-left: 10px;
+    }
+
+    .navbar-nav{
+        margin-right: 10px !important;
+
+        .nav-link{
+            color: $base_color2;
+        }
+    }
+    .input-group{
+        width: 30%;
+    }
+
+    .login{
+        color: $base_color1;
+        padding: 0;
+    }
+    .login:hover{
+        cursor: pointer;
+        color: $base_color3;
+        font-weight: bold;
+    }
+    .logout{
+        color: $base_color1;
+
+        .txt{
+            color: $base_color1;
+        }
+    }
+    .logout:hover{
+        cursor: pointer;
+        font-weight: bold;
+        color: $base_color3;
+    }
+    .buy{
+        border-radius: 0 5px 5px 0;
+    }
+    .buy, .admin{
+        color: $base_color1;
+    }
+    .admin:hover{
+        cursor: pointer;
+        color: $base_color3;
+    }
+    .buy:hover{
+        cursor: pointer;
+        background-color: $base_color1;
+        color: #FA255E;
+        border: 1px solid $base_color3;
+        font-weight: bold;
+    }
+
+    .num_of_items_in_cart{
+        height: 25px;
+        width: 25px;
+        background-color: #FA255E;
+        color: #fef8f5;
+        border-radius: 50%;
+        display: inline-block;
+        text-align: center;
+        font-weight: bold;
+        position: absolute;
+        top: -9px;
+        left: 17px;
+        padding-top: 3px;
+    }
+    .fa-user-cog{
+        font-size: 20px;
+    }
+
+    .my_account_icon:hover{
+        cursor: pointer;
+    }
+
+    .searchBtn{
+        background-color: $base_color3;
+        border: none;
+    }
+    .menuBtn{
+        background-color: $base_color3;
+        border: none;
+    }
+}
