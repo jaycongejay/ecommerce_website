@@ -1,88 +1,89 @@
-$base_color1: #F8E5E5;
-$base_color2: #3F3D56;
-$base_color3: #FA255E;
+@import "../../App.scss";
 
-.home_container{
+.home_container {
+	display: flex;
+	max-width: 1024px;
+	margin: 0 auto;
+	padding: 60px 0;
 
-    display: flex;
-    min-height: calc(100vh - 0px - 100px);
-    max-width: 1024px;
-    margin: 0 auto;
-    
-    .home_message{
-        position: relative;
-        top: 51px;
-        left: 117px;
-        width: 100%;
-        height: 100%;
-        margin-top: 117px;
-        z-index: 50;
-        color: #4e4039;
-    
-        h1{
-            font-size: 4em;
-        }
-    
-        .home{
-            color: $base_color3;
-        }
+	.home_message {
+		color: #4e4039;
 
-        .get-started a {
-            background: $base_color3;
-            color: #fff;
-            border-radius: 9px;
-            padding: 10px 25px;
-            font-size: 17px;
-            text-decoration: none;
-        }
-          
-        .get-started a:hover {
-            background: white;
-            color: $base_color3;
-            border: 1px solid $base_color3;
-        }
-    }
-    .play_with_toy{
-        position: relative;
-        top: 197px;
-        left: -100px;
-        width: 100%;
-        height: 100%;
-        margin-top: 50px;
-        z-index: -100;
+		h1 {
+			font-size: 4em;
+		}
 
+		.home {
+			color: $base_color3;
+		}
 
-        #Vector_48, #Vector_98 {
-            animation: head 3s ease-in-out infinite alternate;
-            transform-origin: center;
-            transform-box: fill-box;
-        }
+		.get-started a {
+			background: $base_color3;
+			color: #fff;
+			border-radius: 9px;
+			padding: 10px 25px;
+			font-size: 17px;
+			text-decoration: none;
+		}
 
-        @keyframes head {
-            from {
-                transform: rotateZ(0);
-            }
-            to {
-                transform: rotateZ(30deg);
-            }
-          }
-    }
+		.get-started a:hover {
+			background: white;
+			color: $base_color3;
+			border: 1px solid $base_color3;
+		}
+	}
+	.play_with_toy {
+		width: 600px;
 
-    
+		#Vector_48,
+		#Vector_98 {
+			animation: head 3s ease-in-out infinite alternate;
+			transform-origin: center;
+			transform-box: fill-box;
+		}
+
+		@keyframes head {
+			from {
+				transform: rotateZ(0);
+			}
+			to {
+				transform: rotateZ(30deg);
+			}
+		}
+	}
 }
 
-.item_preview{
-    max-width: 1000px;
-    margin: 0 auto;
+.item_preview {
+	max-width: $minWidthScreen;
+	margin: 0 auto;
+	.react-multi-carousel-track {
+		gap: 10px;
+	}
+	.slide_img {
+		box-shadow: $boxShadow1;
+		border-radius: 6px;
+		.imgBox {
+			text-align: center;
+			margin: 3px;
+			padding: 10px;
+		}
+		.desc {
+			text-align: center;
+			padding: 10px;
+			@include TextEllipsis;
+			background-color: $base_color4;
+		}
+		.price {
+			text-align: left;
+			padding: 0 0 10px 10px;
+			background-color: $base_color4;
+			border-radius: 0 0 6px 6px;
+		}
+	}
+	.slide_img img {
+		border-radius: 5px;
+	}
+	.react-multi-carousel-list {
+		padding: 1px;
+	}
 }
-.slide_img{
-    padding: 0 10px;
-}
-.slide_img img{
-    border-radius: 5px;
-}
-
-
-
-
-

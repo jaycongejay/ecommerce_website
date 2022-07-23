@@ -1,0 +1,11 @@
+@import "../../App.scss";
+
+.userInfo {
+	text-align: center;
+	.deleteBtn:hover {
+		cursor: pointer;
+		background-color: $backgroundColorLightGrey;
+		padding: 5px;
+		border-radius: 6px;
+	}
+}

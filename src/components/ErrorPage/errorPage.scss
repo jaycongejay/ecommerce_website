@@ -1,0 +1,20 @@
+@import "../../App.scss";
+
+.errorPage {
+	@include AlignBasic;
+	padding-top: 200px;
+	flex-direction: row;
+	gap: 30px;
+	.msgContainer {
+		@include AlignBasic;
+		align-items: flex-start;
+		.title {
+			font-size: 20px;
+			font-weight: bold;
+		}
+		.message {
+			font-size: 19px;
+			font-weight: 600;
+		}
+	}
+}

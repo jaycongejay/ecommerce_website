@@ -1,0 +1,12 @@
+@import "../../App.scss";
+
+.uploadForm {
+	text-align: center;
+	.form {
+		display: flex;
+		align-items: self-end;
+		gap: 50px;
+		justify-content: center;
+		padding: 50px 0;
+	}
+}

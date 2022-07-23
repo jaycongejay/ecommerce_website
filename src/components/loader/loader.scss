@@ -1,0 +1,8 @@
+@import "../../App.scss";
+
+.loader {
+	width: 100%;
+	.MuiLinearProgress-barColorSecondary {
+		background-color: $base_color3;
+	}
+}

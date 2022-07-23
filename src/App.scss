@@ -1,3 +1,36 @@
-body{
-    background-color:#ffffff;
+body {
+	background-color: #ffffff;
+
+	#root {
+		display: flex;
+		flex-direction: column;
+		height: 100vh;
+	}
+	.bodyContentContainer {
+		flex: 6;
+		display: flex;
+		justify-content: center;
+		flex-direction: column;
+	}
+}
+
+$boxShadow1: 0px 0px 0px 1px rgba(0, 0, 0, 0.13);
+$boxShadow2: 0px 1px rgb(0 0 0 / 13%);
+$base_color1: #f8e5e5;
+$base_color2: #3f3d56;
+$base_color3: #fa255e;
+$base_color4: #fef8f5;
+$backgroundColorLightGrey: #dcdcdc40;
+$minWidthScreen: 1000px;
+
+@mixin TextEllipsis {
+	white-space: nowrap;
+	overflow: hidden;
+	text-overflow: ellipsis;
+}
+@mixin AlignBasic {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	flex-direction: column;
 }
