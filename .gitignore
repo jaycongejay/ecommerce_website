@@ -27,4 +27,3 @@ yarn-error.log*
 .fire*
 404.html
 .env
-firebase.json
