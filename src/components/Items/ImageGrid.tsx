@@ -1,7 +1,13 @@
 import React, { useState, useContext, useEffect } from "react";
 import { Link } from "react-router-dom";
-import UseFirestore from "../Firebase/UseFirestore";
-import { fire } from "../../config/fire";
+import {
+	fireAddNewDoc,
+	fireAuth,
+	fireGetDoc,
+	fireGetDocs,
+	fireUpdateDoc,
+} from "../../config/fire";
+import "firebase/compat/firestore";
 import {
 	Button,
 	Modal,
@@ -14,11 +20,13 @@ import {
 import { motion } from "framer-motion";
 import "./ImageGrid.scss";
 import { AuthContext } from "../Auth/AuthContext";
-import firebase from "firebase";
 import { Tooltip } from "@material-ui/core";
 import Loader from "../loader/loader";
 import ErrorPage from "../ErrorPage/errorPage";
 import { Product } from "./ItemF";
+import { Timestamp } from "firebase/firestore";
+import { ShoppingCartInfoContext } from "../ShoppingCartInfo/ShoppingCartInfo";
+import NotificationMui from "../Notification/notification";
 
 interface ImageGridProps {
 	search?: string;
@@ -26,7 +34,7 @@ interface ImageGridProps {
 
 const ImageGrid = (props: ImageGridProps) => {
 	const { search } = props;
-	const { docs } = UseFirestore("images");
+	const [docs, setDocs] = useState<any[]>();
 	const [items, setItems] = useState<Product>({
 		products: undefined,
 		totalNumOfProducts: 0,
@@ -39,7 +47,21 @@ const ImageGrid = (props: ImageGridProps) => {
 	const [price, setPrice] = useState(0);
 	const [modal_item, setModal_item] = useState(false);
 	const [imageId, setImageId] = useState(null);
+	const [noticeEditShopCart, setNoticeEditShopCart] = useState(false);
 	const [user, setUser] = useContext(AuthContext);
+	const [toggleUserShoppingCart, setToggleUserShoppingCart] = useContext(
+		ShoppingCartInfoContext
+	);
+
+	useEffect(() => {
+		fireGetDocs("images").then((snap) => {
+			let documents = [];
+			snap.forEach((doc) => {
+				documents.push({ ...doc.data(), id: doc.id });
+			});
+			setDocs(documents);
+		});
+	}, []);
 
 	useEffect(() => {
 		if (search && search !== "" && docs) {
@@ -56,42 +78,34 @@ const ImageGrid = (props: ImageGridProps) => {
 	}, [docs, search]);
 
 	// Add or Edit item to Shopping cart
-	const toggle_item = (imageId) => {
+	const editCartItem = (imageId) => {
 		setModal_item(!modal_item);
 
 		if (typeof imageId === "string") {
 			setImageId(imageId);
+			fireGetDoc("images", imageId).then((doc) => {
+				if (doc.exists) {
+					setImageName(doc.data().imageName);
+					setPrice(doc.data().price);
+				}
+			});
 
-			fire.firestore()
-				.collection("images")
-				.doc(imageId)
-				.get()
-				.then((doc) => {
-					if (doc.exists) {
-						setImageName(doc.data().imageName);
-						setPrice(doc.data().price);
-					}
-				});
-
-			fire.auth().onAuthStateChanged((user) => {
+			fireAuth.onAuthStateChanged((user) => {
 				if (user) {
-					fire.firestore()
-						.collection("shoppingCart")
-						.orderBy("createdAt", "desc")
-						.onSnapshot((snap) => {
-							let isItemExist = false;
-							snap.forEach((doc) => {
-								if (
-									doc.data().email === user.email &&
-									doc.data().itemId === imageId
-								) {
-									setShoppingCartId(doc.id);
-									isItemExist = true;
-								}
-							});
-							setEmail(user.email);
-							setIsItemExistInCart(isItemExist);
+					fireGetDocs("shoppingCart").then((snap) => {
+						let isItemExist = false;
+						snap.forEach((doc) => {
+							if (
+								doc.data().email === user.email &&
+								doc.data().itemId === imageId
+							) {
+								setShoppingCartId(doc.id);
+								isItemExist = true;
+							}
 						});
+						setEmail(user.email);
+						setIsItemExistInCart(isItemExist);
+					});
 				}
 			});
 		}
@@ -109,18 +123,15 @@ const ImageGrid = (props: ImageGridProps) => {
 		}
 	};
 
-	const onSubmit_item = (e) => {
+	const onSubmitEditCartItem = (e) => {
 		e.preventDefault();
 
 		if (isItemExistInCart) {
 			// Update the existing item in shopping cart
-			fire.firestore()
-				.collection("shoppingCart")
-				.doc(shoppingCartId)
-				.update({
-					qty,
-				})
-				.then(function (docRef) {
+			fireUpdateDoc("shoppingCart", shoppingCartId, {
+				qty,
+			})
+				.then(function () {
 					console.log("Shopping Cart Updated successfully");
 				})
 				.catch(function (error) {
@@ -128,18 +139,17 @@ const ImageGrid = (props: ImageGridProps) => {
 				});
 		} else {
 			// Create new item in shopping cart
-			fire.firestore()
-				.collection("shoppingCart")
-				.add({
-					qty,
-					email: email,
-					itemName: imageName,
-					itemId: imageId,
-					price: price,
-					createdAt: firebase.firestore.Timestamp.now(),
-				})
-				.then(function (docRef) {
-					console.log("Document written with ID: ", docRef.id);
+			fireAddNewDoc("shoppingCart", {
+				qty,
+				email: email,
+				itemName: imageName,
+				itemId: imageId,
+				price: price,
+				createdAt: Timestamp.now(),
+			})
+				.then(function () {
+					console.log("Item has been added successfully");
+					setToggleUserShoppingCart(!toggleUserShoppingCart);
 				})
 				.catch(function (error) {
 					console.error("Error adding document: ", error);
@@ -147,6 +157,12 @@ const ImageGrid = (props: ImageGridProps) => {
 		}
 
 		closeToggle();
+		setQty(1);
+		setNoticeEditShopCart(true);
+	};
+
+	const onCloseNoticeEditShopCart = () => {
+		setNoticeEditShopCart(false);
 	};
 
 	if (!items.products)
@@ -171,7 +187,6 @@ const ImageGrid = (props: ImageGridProps) => {
 						drag="x"
 						dragConstraints={{ left: -100, right: 100 }}
 						whileHover={{ scale: 1.1 }}
-						whileTap={{ scale: 0.9 }}
 						className="img-wrap"
 						key={doc.id}
 					>
@@ -194,7 +209,7 @@ const ImageGrid = (props: ImageGridProps) => {
 								{user ? (
 									<h5
 										className="addToCart"
-										onClick={() => toggle_item(doc.id)}
+										onClick={() => editCartItem(doc.id)}
 									>
 										ADD TO CART
 									</h5>
@@ -202,7 +217,7 @@ const ImageGrid = (props: ImageGridProps) => {
 									<Link to="/login">
 										<h5
 											className="addToCart"
-											onClick={() => toggle_item(doc.id)}
+											onClick={() => editCartItem(doc.id)}
 										>
 											ADD TO CART
 										</h5>
@@ -213,18 +228,17 @@ const ImageGrid = (props: ImageGridProps) => {
 					</motion.div>
 				))}
 
-				<Modal isOpen={modal_item} toggle={toggle_item}>
-					<ModalHeader toggle={toggle_item}>
+				<Modal isOpen={modal_item} toggle={editCartItem}>
+					<ModalHeader toggle={editCartItem}>
 						ADD/EDIT to Shopping cart
 					</ModalHeader>
 					<ModalBody>
-						<Form onSubmit={onSubmit_item}>
+						<Form onSubmit={onSubmitEditCartItem}>
 							<FormGroup>
 								<Input
 									type="number"
 									name="qty"
 									id="item"
-									defaultValue={1}
 									value={qty}
 									onChange={onChange_item}
 								/>
@@ -239,6 +253,16 @@ const ImageGrid = (props: ImageGridProps) => {
 						</Form>
 					</ModalBody>
 				</Modal>
+				<NotificationMui
+					isOpen={noticeEditShopCart}
+					onClose={onCloseNoticeEditShopCart}
+					message={
+						"Your shopping cart has been updated successfully."
+					}
+					duration={5000}
+					position={{ vertical: "top", horizontal: "right" }}
+					type={"success"}
+				/>
 			</div>
 		</>
 	);

@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { Button, Modal, ModalBody, ModalHeader } from "reactstrap";
-import { fire } from "../../config/fire";
+import { fireAuth, fireGetDocs } from "../../config/fire";
 import countryRegionData from "country-region-data/dist/data-umd";
 import "./CheckOut.scss";
 import Loader from "../loader/loader";
@@ -12,59 +12,51 @@ const CheckOut = () => {
 	const [address, setAddress] = useState<string>(""); // userSetting address
 	const [totalShoppingAmount, setTotalShoppingAmount] = useState<string>(""); // User's total shopping amount
 	const [total, setTotal] = useState<string>(""); // User's total shopping amount
-
 	const [modal, setModal] = useState<boolean>(false);
-
 	const [allCountries, setAllCountries] = useState<any[]>([]);
 	const [allProvinces, setAllProvinces] = useState<any[]>([]);
 	const [processPayment, setProcessPayment] = useState(false);
 
 	useEffect(() => {
 		// User setting
-		fire.auth().onAuthStateChanged((user) => {
+		fireAuth.onAuthStateChanged((user) => {
 			if (user) {
-				fire.firestore()
-					.collection("userSetting")
-					.orderBy("createdAt", "desc")
-					.onSnapshot((snap) => {
-						snap.forEach((doc) => {
-							if (doc.data().email === user.email) {
-								if (doc.data().name != null)
-									setName(doc.data().name);
-								if (doc.data().phone != null)
-									setPhone(doc.data().phone);
-								if (doc.data().address != null)
-									setAddress(doc.data().address);
-								setEmail(doc.data().email);
-							}
-						});
+				fireGetDocs("userSetting").then((snap) => {
+					snap.forEach((doc) => {
+						if (doc.data().email === user.email) {
+							if (doc.data().name != null)
+								setName(doc.data().name);
+							if (doc.data().phone != null)
+								setPhone(doc.data().phone);
+							if (doc.data().address != null)
+								setAddress(doc.data().address);
+							setEmail(doc.data().email);
+						}
 					});
+				});
 			}
 		});
 
 		// Shopping Cart
-		fire.auth().onAuthStateChanged((user) => {
+		fireAuth.onAuthStateChanged((user) => {
 			if (user) {
-				fire.firestore()
-					.collection("shoppingCart")
-					.orderBy("createdAt", "desc")
-					.onSnapshot((snap) => {
-						let documents: any[] = [];
-						let totalShoppingAmount = 0;
-						snap.forEach((doc) => {
-							if (doc.data().email === user.email) {
-								documents.push({ ...doc.data(), id: doc.id });
-								totalShoppingAmount +=
-									doc.data().qty * doc.data().price;
-							}
-						});
-						setTotalShoppingAmount(totalShoppingAmount.toFixed(2));
-						setTotal(
-							(
-								parseFloat(totalShoppingAmount.toString()) + 3
-							).toFixed(2)
-						);
+				fireGetDocs("shoppingCart").then((snap) => {
+					let documents: any[] = [];
+					let totalShoppingAmount = 0;
+					snap.forEach((doc) => {
+						if (doc.data().email === user.email) {
+							documents.push({ ...doc.data(), id: doc.id });
+							totalShoppingAmount +=
+								doc.data().qty * doc.data().price;
+						}
 					});
+					setTotalShoppingAmount(totalShoppingAmount.toFixed(2));
+					setTotal(
+						(
+							parseFloat(totalShoppingAmount.toString()) + 3
+						).toFixed(2)
+					);
+				});
 			}
 		});
 
@@ -109,6 +101,8 @@ const CheckOut = () => {
 				<Loader />
 			</div>
 		);
+
+	if (!total) return <Loader />;
 
 	return (
 		<div className="checkout">
@@ -285,7 +279,7 @@ const CheckOut = () => {
 			<Modal isOpen={modal} toggle={paymentFinished}>
 				<ModalHeader>Payment Result</ModalHeader>
 				<ModalBody>
-					<p>Your payment has been successfully made</p>
+					<p>Your payment has been successfully processed.</p>
 					<p>(This is not real - demo project)</p>
 					<p> - Thank You -</p>
 					<Button

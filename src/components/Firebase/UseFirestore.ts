@@ -1,23 +1,31 @@
 import { useState, useEffect } from "react";
-import { fire } from "../../config/fire";
+import { fireGetDocs } from "../../config/fire";
 
 const UseFirestore = (collection) => {
 	const [docs, setDocs] = useState<any[]>();
 
 	useEffect(() => {
-		const unsub = fire
-			.firestore()
-			.collection(collection)
-			.orderBy("createdAt", "desc")
-			.onSnapshot((snap) => {
-				let documents = [];
-				snap.forEach((doc) => {
-					documents.push({ ...doc.data(), id: doc.id });
-				});
-				setDocs(documents);
-			});
+		// const unsub = fire
+		// 	.firestore()
+		// 	.collection(collection)
+		// 	.orderBy("createdAt", "desc")
+		// 	.onSnapshot((snap) => {
+		// 		let documents = [];
+		// 		snap.forEach((doc) => {
+		// 			documents.push({ ...doc.data(), id: doc.id });
+		// 		});
+		// 		setDocs(documents);
+		// 	});
 
-		return () => unsub();
+		// return () => unsub();
+
+		const unsub = fireGetDocs(collection).then((snap) => {
+			let documents = [];
+			snap.forEach((doc) => {
+				documents.push({ ...doc.data(), id: doc.id });
+			});
+			setDocs(documents);
+		});
 	}, [collection]);
 
 	return { docs };

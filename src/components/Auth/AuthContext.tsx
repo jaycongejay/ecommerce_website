@@ -1,24 +1,24 @@
 import React, { createContext, useEffect, useState } from "react";
-import { fire } from "../../config/fire";
+import { fireAuth } from "../../config/fire";
 
 export const AuthContext = createContext<any>(undefined);
 
 export const AuthProvider = (props: any) => {
-    const [user, setUser] = useState<Object | undefined>({});
+	const [user, setUser] = useState<Object | undefined>({});
 
-    useEffect(() => {
-        fire.auth().onAuthStateChanged((user) => {
-            if (user) {
-                setUser(user);
-            } else {
-                setUser(undefined);
-            }
-        });
-    }, []);
+	useEffect(() => {
+		fireAuth.onAuthStateChanged((user) => {
+			if (user) {
+				setUser(user);
+			} else {
+				setUser(undefined);
+			}
+		});
+	}, []);
 
-    return (
-        <AuthContext.Provider value={[user, setUser]}>
-            {props.children}
-        </AuthContext.Provider>
-    );
+	return (
+		<AuthContext.Provider value={[user, setUser]}>
+			{props.children}
+		</AuthContext.Provider>
+	);
 };

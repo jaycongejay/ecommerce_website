@@ -1,43 +1,70 @@
-import React, { useContext, useEffect, useState } from "react";
+import React, { useCallback, useContext, useEffect, useState } from "react";
 import { Nav, Navbar, NavDropdown } from "react-bootstrap";
 import ClickAwayListener from "@material-ui/core/ClickAwayListener";
 import Tooltip from "@material-ui/core/Tooltip";
 import { motion } from "framer-motion";
 import { Link } from "react-router-dom";
 import { Button, Input, InputGroup } from "reactstrap";
-import { fire } from "../../config/fire";
+import { fireAuth, fireGetDocs, fireSignOut } from "../../config/fire";
 import { AuthContext } from "../Auth/AuthContext";
 import "./NavBar.scss";
 import { MAIN_MENU_ITEMS, TOY_NEWS_ITEMS } from "./NavBarF";
+import { ShoppingCartInfoContext } from "../ShoppingCartInfo/ShoppingCartInfo";
+import xss from "xss";
+import NotificationMui from "../Notification/notification";
 
 const NavBar = () => {
 	const [user, setUser] = useContext(AuthContext);
-	const [numOfItemShoppingCart, setNumOfItemShoppingCart] = useState(null);
+	const [toggleUserShoppingCart, setToggleUserShoppingCart] = useContext(
+		ShoppingCartInfoContext
+	);
+	const [numOfShopItems, setNumOfShopItems] = useState(undefined);
 	const [menuBtn, setMenuBtn] = useState(false);
 	const [myaccountBtn, setMyaccountBtn] = useState(false);
 	const [searchInput, setSearchInput] = useState("");
+	const [showHoverShopCart, setShowHoverShopCart] = useState(false);
+	const [noticeLogOut, setNoticeLogOut] = useState(false);
 
 	useEffect(() => {
-		fire.auth().onAuthStateChanged((user) => {
+		fireAuth.onAuthStateChanged((user) => {
 			if (user) {
-				fire.firestore()
-					.collection("shoppingCart")
-					.orderBy("createdAt", "desc")
-					.onSnapshot((snap) => {
-						let numOfItemAddedInShoppingCart = 0;
-						snap.forEach((doc) => {
-							if (doc.data().email === user.email) {
-								numOfItemAddedInShoppingCart++;
-							}
-						});
-						setNumOfItemShoppingCart(numOfItemAddedInShoppingCart);
+				fireGetDocs("shoppingCart").then((snap) => {
+					let numOfItemAddedInShoppingCart = 0;
+					snap.forEach((doc) => {
+						if (doc.data().email === user.email) {
+							numOfItemAddedInShoppingCart++;
+						}
 					});
+					setNumOfShopItems(numOfItemAddedInShoppingCart);
+				});
 			}
 		});
 		if (window.location.pathname.split("/")[1].includes("search")) {
 			setSearchInput(decodeURI(window.location.pathname.split("/")[2]));
 		}
+	}, [toggleUserShoppingCart]);
+
+	useEffect(() => {
+		window.addEventListener("scroll", onScrollShowHoverShopCart);
+		return () =>
+			window.removeEventListener("scroll", onScrollShowHoverShopCart);
 	}, []);
+
+	const onScrollShowHoverShopCart = useCallback(() => {
+		if (
+			window.location.pathname.split("/")[1] === "item" ||
+			window.location.pathname.split("/")[1] === "search" ||
+			window.location.pathname.split("/")[1] === ""
+		) {
+			if (window.pageYOffset > 2) {
+				setShowHoverShopCart(true);
+			} else {
+				setShowHoverShopCart(false);
+			}
+		} else {
+			setShowHoverShopCart(false);
+		}
+	}, [showHoverShopCart]);
 
 	const toggleMenu = () => {
 		setMenuBtn(!menuBtn);
@@ -56,13 +83,18 @@ const NavBar = () => {
 		setMyaccountBtn(false);
 	};
 
+	const logIn = () => {
+		setMyaccountBtn(false);
+	};
 	const logout = () => {
-		fire.auth().signOut();
-		window.location.href = `/login`;
+		fireSignOut(fireAuth).then(() => {
+			setNoticeLogOut(true);
+			setMyaccountBtn(false);
+		});
 	};
 
 	const searchInputChange = (e) => {
-		setSearchInput(e.target.value);
+		setSearchInput(xss(e.target.value));
 	};
 	const searchProducts = (e) => {
 		if (e.key === "Enter") {
@@ -76,6 +108,9 @@ const NavBar = () => {
 	const clearSearchInput = () => {
 		setSearchInput("");
 		window.location.href = `/item`;
+	};
+	const onCloseNoticeLogOut = () => {
+		setNoticeLogOut(false);
 	};
 
 	return (
@@ -152,7 +187,7 @@ const NavBar = () => {
 							alt="bagIcon"
 						/>
 						<span className="num_of_items_in_cart">
-							{numOfItemShoppingCart}
+							{numOfShopItems}
 						</span>
 					</>
 				) : (
@@ -188,6 +223,7 @@ const NavBar = () => {
 												<i className="fas fa-user-cog"></i>
 											</Link>
 											<Link
+												to="/login"
 												onClick={logout}
 												className="logout"
 											>
@@ -200,6 +236,7 @@ const NavBar = () => {
 												{user.email}&ensp;&ensp;&ensp;
 											</p>
 											<Link
+												to="/login"
 												onClick={logout}
 												className="logout"
 											>
@@ -209,7 +246,11 @@ const NavBar = () => {
 									)}
 								</>
 							) : (
-								<Link to="/login" className="login">
+								<Link
+									to="/login"
+									className="login"
+									onClick={logIn}
+								>
 									LOGIN
 								</Link>
 							)}
@@ -217,6 +258,44 @@ const NavBar = () => {
 					) : null}
 				</div>
 			</ClickAwayListener>
+			{showHoverShopCart && (
+				<motion.div
+					className="hoverShoppingCart"
+					animate={{
+						scale: [1, 2, 2, 1, 1],
+						rotate: [0, 0, 180, 180, 0],
+						borderRadius: ["50%", "50%", "50%", "50%", "30%"],
+					}}
+					transition={{
+						duration: 1.5,
+						ease: "easeInOut",
+						times: [0, 0.2, 0.5, 0.8, 1],
+						repeat: 0,
+						repeatDelay: 1,
+					}}
+				>
+					<Link to="/shoppingCart">
+						<motion.img
+							initial={{ y: -100 }}
+							animate={{ y: 0 }}
+							src="/bag.png"
+							width="30px"
+							alt="bagIcon"
+						/>
+						<span className="num_of_items_in_cart">
+							{user ? numOfShopItems : 0}
+						</span>
+					</Link>
+				</motion.div>
+			)}
+			<NotificationMui
+				isOpen={noticeLogOut}
+				onClose={onCloseNoticeLogOut}
+				message={"You have been successfully logged out."}
+				duration={5000}
+				position={{ vertical: "top", horizontal: "right" }}
+				type={"success"}
+			/>
 		</Navbar>
 	);
 };

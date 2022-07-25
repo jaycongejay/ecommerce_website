@@ -1,9 +1,9 @@
 import React, { useEffect, useState } from "react";
 import { ModalFooter, Table } from "reactstrap";
-import { fire } from "../../config/fire";
 import { converToHumanDate } from "./managementH";
 import { Button, Modal, ModalHeader, ModalBody } from "reactstrap";
 import "./UsersInfo.scss";
+import { fireAuth, fireDeleteDoc, fireGetDocs } from "../../config/fire";
 
 const UsersInfo = () => {
 	const [userInfos, setUserInfos] = useState<any[]>();
@@ -14,37 +14,31 @@ const UsersInfo = () => {
 	useEffect(() => {
 		getAllShoppingCarts();
 		getAllUserInfos();
-	}, []);
+	}, [userInfos]);
 
 	const getAllUserInfos = () => {
-		fire.auth().onAuthStateChanged((user) => {
+		fireAuth.onAuthStateChanged((user) => {
 			if (user) {
-				fire.firestore()
-					.collection("userSetting")
-					.orderBy("createdAt", "desc")
-					.onSnapshot((snap) => {
-						const users = [];
-						snap.forEach((doc) => {
-							users.push({ ...doc.data(), id: doc.id });
-						});
-						setUserInfos(users);
+				fireGetDocs("userSetting").then((snap) => {
+					const users = [];
+					snap.forEach((doc) => {
+						users.push({ ...doc.data(), id: doc.id });
 					});
+					setUserInfos(users);
+				});
 			}
 		});
 	};
 	const getAllShoppingCarts = () => {
-		fire.auth().onAuthStateChanged((user) => {
+		fireAuth.onAuthStateChanged((user) => {
 			if (user) {
-				fire.firestore()
-					.collection("shoppingCart")
-					.orderBy("createdAt", "desc")
-					.onSnapshot((snap) => {
-						const carts = [];
-						snap.forEach((doc) => {
-							carts.push({ ...doc.data(), id: doc.id });
-						});
-						setAllShoppingCarts(carts);
+				fireGetDocs("shoppingCart").then((snap) => {
+					const carts = [];
+					snap.forEach((doc) => {
+						carts.push({ ...doc.data(), id: doc.id });
 					});
+					setAllShoppingCarts(carts);
+				});
 			}
 		});
 	};
@@ -58,14 +52,12 @@ const UsersInfo = () => {
 		});
 		return userCartNumOfItems;
 	};
+	// Empty user's shopping cart
 	const deleteUser = () => {
 		// Clear the user's shopping cart
 		allShoppingCarts.forEach((cart) => {
 			if (cart.email === selectedUser) {
-				fire.firestore()
-					.collection("shoppingCart")
-					.doc(cart.id)
-					.delete()
+				fireDeleteDoc("shoppingCart", cart.id)
 					.then(function () {
 						console.log("Document successfully deleted!");
 					})

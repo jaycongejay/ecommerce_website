@@ -163,6 +163,17 @@
 			cursor: pointer;
 		}
 	}
+	.hoverShoppingCart {
+		position: fixed;
+		right: 2%;
+		bottom: 9%;
+		background-color: $base_color1;
+		padding: 15px;
+		border-radius: 30%;
+		a {
+			padding: 0;
+		}
+	}
 }
 
 .navbar .searchBtn {

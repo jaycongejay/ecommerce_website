@@ -16,39 +16,56 @@
 		font-size: 13px;
 		min-width: $minWidthScreen;
 
-		.title {
-			position: relative;
-			left: -45px;
-			color: grey;
-		}
-		.title_account {
-			color: grey;
-		}
+		.accountContainer {
+			display: flex;
+			flex-direction: column;
+			.colAccount {
+				flex: 1;
+			}
+			.account {
+				background-color: #fcf3f3;
+				border-radius: 8px;
+				padding: 20px;
+				font-size: 13px;
 
-		.account {
-			background-color: #fcf3f3;
-			border-radius: 8px;
-			padding: 20px;
-			font-size: 13px;
+				flex: 18;
+				display: flex;
+				flex-direction: column;
+				justify-content: space-between;
 
-			ul {
-				list-style: none;
-				text-align: left;
+				ul {
+					list-style: none;
+					text-align: left;
 
-				li {
-					margin: 20px 0;
-					font-weight: bold;
-					font-size: 13px;
+					li {
+						margin: 20px 0;
+						font-weight: bold;
+						font-size: 13px;
+					}
 				}
 			}
 		}
+		.colAccount,
+		.colQty,
+		.colItem,
+		.colPrice {
+			color: grey;
+		}
+
 		.shoppingCart {
 			grid-column-start: 2;
 			grid-column-end: 5;
 			font-size: 11px;
+			.cartItemCols {
+				display: grid;
+				grid-template-columns: 1fr 4fr 1fr 1fr 1fr;
+				padding-left: 10px;
+			}
 
 			ul {
 				list-style: none;
+				max-height: 500px;
+				overflow-y: auto;
 
 				li {
 					background-color: #fcf3f3;
@@ -94,22 +111,26 @@
 				}
 			}
 		}
-		.total {
-			color: black;
-			margin-right: 20px;
-		}
-		.total_amount {
-			font-weight: bold;
-			font-size: 13px;
-			color: $base_color3;
-			position: relative;
-		}
+		.checkoutBox {
+			display: flex;
+			justify-content: space-between;
+			padding: 0 30px;
+			.total {
+				color: black;
+				margin-right: 20px;
+			}
+			.total_amount {
+				font-weight: bold;
+				font-size: 13px;
+				color: $base_color3;
+				position: relative;
+			}
 
-		.checkOut {
-			grid-column-start: 4;
-			grid-column-end: 5;
+			.checkOut {
+				grid-column-start: 4;
+				grid-column-end: 5;
+			}
 		}
-
 		.checkout_btn,
 		.setting_btn {
 			color: $base_color1;

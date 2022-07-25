@@ -1,4 +1,5 @@
-import firebase from "firebase";
+import firebase from "firebase/compat/app";
+import "firebase/compat/firestore";
 import React, { useState } from "react";
 import {
 	Button,
@@ -11,8 +12,15 @@ import {
 	ModalFooter,
 	ModalHeader,
 } from "reactstrap";
-import { fire } from "../../config/fire";
+import {
+	fireAddNewDoc,
+	fireAuth,
+	fireCreateUser,
+	fireSignIn,
+} from "../../config/fire";
+import { Timestamp } from "firebase/firestore";
 import "./Login.scss";
+import xss from "xss";
 
 const Login = (props) => {
 	const [loginState, setLoginState] = useState({
@@ -25,20 +33,26 @@ const Login = (props) => {
 	const login = (e) => {
 		e.preventDefault();
 
-		fire.auth()
-			.signInWithEmailAndPassword(loginState.email, loginState.password)
+		fireSignIn(fireAuth, loginState.email, loginState.password)
 			.then((u) => {
 				window.location.href = "/";
 			})
 			.catch((err) => {
-				setErrMessage(err.message);
+				if (err.code === "auth/wrong-password") {
+					setErrMessage(
+						"The password you entered is incorrect. Please try again"
+					);
+				}
+				if (err.code === "auth/user-not-found") {
+					setErrMessage("Couldn't find your Toy Shop account");
+				}
 				setModal(true);
 			});
 	};
 
 	const handleChange = (e) => {
 		const update = { ...loginState };
-		update[e.target.name] = e.target.value;
+		update[e.target.name] = xss(e.target.value);
 		setLoginState(update);
 	};
 
@@ -46,22 +60,21 @@ const Login = (props) => {
 		e.preventDefault();
 		createUserFirebase()
 			.then((u) => {
-				fire.firestore()
-					.collection("userSetting")
-					.add({
-						address: "",
-						createdAt: firebase.firestore.Timestamp.now(),
-						email: loginState.email,
-						name: "",
-						phone: "",
-					})
-					.then(function (docRef) {
-						console.log("Document written with ID: ", docRef.id);
+				fireAddNewDoc("userSetting", {
+					address: "",
+					createdAt: Timestamp.now(),
+					email: loginState.email,
+					name: "",
+					phone: "",
+				})
+					.then(function () {
+						console.log(
+							"A user setting has been successfully added"
+						);
 					})
 					.catch(function (error) {
-						console.error("err");
+						console.error(error);
 					});
-
 				// Login as new user
 				login(e);
 			})
@@ -72,12 +85,11 @@ const Login = (props) => {
 	};
 
 	const createUserFirebase = async () => {
-		return await fire
-			.auth()
-			.createUserWithEmailAndPassword(
-				loginState.email,
-				loginState.password
-			);
+		return await fireCreateUser(
+			fireAuth,
+			loginState.email,
+			loginState.password
+		);
 	};
 
 	const toggle = () => {
@@ -87,7 +99,7 @@ const Login = (props) => {
 	return (
 		<>
 			<Form className="loginForm">
-				<FormGroup controlId="formBasicEmail">
+				<FormGroup controlid="formBasicEmail">
 					<Label>Email address</Label>
 					<Input
 						type="email"
@@ -98,7 +110,7 @@ const Login = (props) => {
 					/>
 				</FormGroup>
 
-				<FormGroup controlId="formBasicPassword">
+				<FormGroup controlid="formBasicPassword">
 					<Label>Password</Label>
 					<Input
 						type="password"

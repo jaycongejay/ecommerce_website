@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import "./Home.scss";
 import Carousel from "react-multi-carousel";
@@ -9,9 +9,21 @@ import UseFirestore from "../Firebase/UseFirestore";
 import { LANDING_PAGE_ANIMATION } from "../../assets/landingPageImg";
 import { PRICE_TAG } from "../../assets/priceTag";
 import Tooltip from "@material-ui/core/Tooltip";
+import { fireGetDocs } from "../../config/fire";
 
 const Home = () => {
-	const { docs } = UseFirestore("images");
+	// const { docs } = UseFirestore("images");
+	const [docs, setDocs] = useState<any[]>();
+
+	useEffect(() => {
+		fireGetDocs("images").then((snap) => {
+			let documents = [];
+			snap.forEach((doc) => {
+				documents.push({ ...doc.data(), id: doc.id });
+			});
+			setDocs(documents);
+		});
+	}, []);
 
 	const responsive = {
 		superLargeDesktop: {

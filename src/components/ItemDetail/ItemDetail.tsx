@@ -1,5 +1,4 @@
-import firebase from "firebase";
-import React, { useEffect, useState } from "react";
+import React, { useContext, useEffect, useState } from "react";
 import {
 	Button,
 	Modal,
@@ -10,8 +9,16 @@ import {
 	Input,
 } from "reactstrap";
 import { PRICE_TAG } from "../../assets/priceTag";
-import { fire } from "../../config/fire";
+import {
+	fireAddNewDoc,
+	fireAuth,
+	fireGetDoc,
+	fireGetDocs,
+	fireUpdateDoc,
+} from "../../config/fire";
+import { Timestamp } from "firebase/firestore";
 import "./ItemDetail.scss";
+import { ShoppingCartInfoContext } from "../ShoppingCartInfo/ShoppingCartInfo";
 
 const ItemDetail = (props) => {
 	const { match } = props;
@@ -25,14 +32,17 @@ const ItemDetail = (props) => {
 		isItemExistInCart: false,
 		shoppingCartId: undefined,
 	});
+	const [toggleUserShoppingCart, setToggleUserShoppingCart] = useContext(
+		ShoppingCartInfoContext
+	);
 
 	useEffect(() => {
 		const update = { ...itemDetail };
-		fire.auth().onAuthStateChanged((user) => {
+		fireAuth.onAuthStateChanged((user) => {
 			if (user) {
 				update.user = user.email;
 				// get an image
-				getImagesFireStore(match.params.id).then((doc) => {
+				fireGetDoc("images", match.params.id).then((doc) => {
 					if (doc.exists) {
 						update.url = doc.data().url;
 						update.imageName = doc.data().imageName;
@@ -44,35 +54,24 @@ const ItemDetail = (props) => {
 		});
 	}, []);
 
-	const getImagesFireStore = async (selectedId: string) => {
-		return await fire
-			.firestore()
-			.collection("images")
-			.doc(selectedId)
-			.get();
-	};
-
 	const toggle = () => {
 		const update = { ...itemDetail };
 		update.modal = !itemDetail.modal;
 
 		// check if the item exist in user's shopping cart
-		fire.auth().onAuthStateChanged((user) => {
+		fireAuth.onAuthStateChanged((user) => {
 			if (user) {
-				fire.firestore()
-					.collection("shoppingCart")
-					.orderBy("createdAt", "desc")
-					.onSnapshot((snap) => {
-						snap.forEach((doc) => {
-							if (
-								doc.data().email === user.email &&
-								doc.data().itemId === match.params.id
-							) {
-								update.isItemExistInCart = true;
-								update.shoppingCartId = doc.id;
-							}
-						});
+				fireGetDocs("shoppingCart").then((snap) => {
+					snap.docs.some((doc) => {
+						if (
+							doc.data().email === user.email &&
+							doc.data().itemId === match.params.id
+						) {
+							update.isItemExistInCart = true;
+							update.shoppingCartId = doc.id;
+						}
 					});
+				});
 			}
 		});
 		setItemDetail(update);
@@ -83,13 +82,10 @@ const ItemDetail = (props) => {
 
 		if (itemDetail.isItemExistInCart) {
 			// Update the existing item in shopping cart
-			fire.firestore()
-				.collection("shoppingCart")
-				.doc(itemDetail.shoppingCartId)
-				.update({
-					qty: itemDetail.qty,
-				})
-				.then(function (docRef) {
+			fireUpdateDoc("shoppingCart", itemDetail.shoppingCartId, {
+				qty: itemDetail.qty,
+			})
+				.then(function () {
 					console.log("User Setting Updated successfully");
 				})
 				.catch(function (error) {
@@ -97,21 +93,20 @@ const ItemDetail = (props) => {
 				});
 		} else {
 			// Create new item in shopping cart
-			fire.firestore()
-				.collection("shoppingCart")
-				.add({
-					qty: itemDetail.qty,
-					email: itemDetail.user,
-					itemName: itemDetail.imageName,
-					itemId: match.params.id,
-					price: itemDetail.price,
-					createdAt: firebase.firestore.Timestamp.now(),
-				})
-				.then(function (docRef) {
-					console.log("Document written with ID: ", docRef.id);
+			fireAddNewDoc("shoppingCart", {
+				qty: itemDetail.qty,
+				email: itemDetail.user,
+				itemName: itemDetail.imageName,
+				itemId: match.params.id,
+				price: itemDetail.price,
+				createdAt: Timestamp.now(),
+			})
+				.then(function () {
+					console.log("A new item has been added successfully");
+					setToggleUserShoppingCart(!toggleUserShoppingCart);
 				})
 				.catch(function (error) {
-					console.error("Error adding document: ", error);
+					console.error(error);
 				});
 		}
 
